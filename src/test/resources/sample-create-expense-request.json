@@ -1,0 +1,22 @@
+{
+  "groupId": "f2b23e6f-3380-4db9-af36-4a5d1f0ed001",
+  "paidByUserId": "9ebc5a6f-b6fc-4f8d-ac0d-6c3c1a2b3001",
+  "title": "Dinner at Olive Bistro",
+  "description": "Friday dinner bill",
+  "totalAmount": 2400.00,
+  "currencyCode": "INR",
+  "splitType": "EQUAL",
+  "expenseDate": "2026-07-08",
+  "createdByUserId": "9ebc5a6f-b6fc-4f8d-ac0d-6c3c1a2b3001",
+  "participants": [
+    {
+      "userId": "9ebc5a6f-b6fc-4f8d-ac0d-6c3c1a2b3001"
+    },
+    {
+      "userId": "adb8fe7d-5969-4f11-af7d-14de3b78d002"
+    },
+    {
+      "userId": "ec49f6d1-2025-4f43-8db8-7a3228ba9003"
+    }
+  ]
+}

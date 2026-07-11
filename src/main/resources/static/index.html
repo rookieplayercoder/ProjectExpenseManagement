@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared Expense Manager</title>
+</head>
+<body>
+  <div id="loading" style="display:none;">Processing...</div>
+  <div id="globalError" style="display:none;color:red;"></div>
+
+  <form id="expenseForm">
+    <input id="expenseGroupId" placeholder="Group ID" />
+    <input id="paidByUserId" placeholder="Paid By User ID" required />
+    <input id="expenseTitle" placeholder="Title" required />
+    <input id="expenseDescription" placeholder="Description" />
+    <input id="totalAmount" type="number" step="0.0001" placeholder="Total Amount" required />
+    <input id="currencyCode" placeholder="Currency Code" required />
+    <input id="expenseDate" type="date" required />
+    <input id="createdByUserId" placeholder="Created By User ID" required />
+    <select id="splitType">
+      <option value="EQUAL">EQUAL</option>
+      <option value="EXACT">EXACT</option>
+      <option value="PERCENTAGE">PERCENTAGE</option>
+    </select>
+    <textarea id="participants" placeholder="userId OR userId,amount OR userId,percentage"></textarea>
+    <button type="submit">Create Expense</button>
+  </form>
+
+  <div id="expenseResult"></div>
+
+  <hr />
+
+  <form id="settlementForm">
+    <input id="settlementGroupId" placeholder="Group ID" />
+    <input id="settlementPaidByUserId" placeholder="Paid By User ID" required />
+    <input id="settlementPaidToUserId" placeholder="Paid To User ID" required />
+    <input id="settlementAmount" type="number" step="0.0001" placeholder="Amount" required />
+    <input id="settlementCurrencyCode" placeholder="Currency Code" required />
+    <input id="settlementDate" type="date" required />
+    <input id="settlementNote" placeholder="Note" />
+    <input id="settlementCreatedByUserId" placeholder="Created By User ID" required />
+    <button type="submit">Settle Balance</button>
+  </form>
+
+  <div id="settlementResult"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

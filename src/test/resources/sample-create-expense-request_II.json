@@ -1,0 +1,10 @@
+{
+  "groupId": "f2b23e6f-3380-4db9-af36-4a5d1f0ed001",
+  "paidByUserId": "adb8fe7d-5969-4f11-af7d-14de3b78d002",
+  "paidToUserId": "9ebc5a6f-b6fc-4f8d-ac0d-6c3c1a2b3001",
+  "amount": 800.00,
+  "currencyCode": "INR",
+  "settlementDate": "2026-07-08",
+  "note": "Settled dinner share",
+  "createdByUserId": "adb8fe7d-5969-4f11-af7d-14de3b78d002"
+}
