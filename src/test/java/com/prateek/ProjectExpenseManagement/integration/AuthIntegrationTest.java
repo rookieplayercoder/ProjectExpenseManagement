@@ -13,6 +13,7 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -140,5 +141,17 @@ class AuthIntegrationTest extends AbstractIntegrationTestBase {
         securedMockMvc.perform(get("/api/v1/expenses/00000000-0000-0000-0000-000000000000")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void everyResponseCarriesACorrelationId() throws Exception {
+        securedMockMvc.perform(get("/api/v1/expenses/00000000-0000-0000-0000-000000000000"))
+                .andExpect(header().exists("X-Request-Id"));
+
+        // A caller-supplied request id is echoed back rather than replaced,
+        // so a client can correlate its own logs with ours.
+        securedMockMvc.perform(get("/api/v1/expenses/00000000-0000-0000-0000-000000000000")
+                        .header("X-Request-Id", "caller-supplied-id-123"))
+                .andExpect(header().string("X-Request-Id", "caller-supplied-id-123"));
     }
 }

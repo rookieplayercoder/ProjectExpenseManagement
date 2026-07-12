@@ -23,6 +23,7 @@ public class CreateGroupRequest {
      * Additional members to add alongside the creator. The creator is always
      * added as a member automatically and does not need to be repeated here.
      */
+    @Size(max = 500, message = "A group cannot have more than 500 additional members")
     private List<UUID> memberUserIds;
 
     public String getGroupName() {

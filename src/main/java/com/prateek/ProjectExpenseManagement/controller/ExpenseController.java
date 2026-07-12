@@ -3,6 +3,8 @@ package com.prateek.ProjectExpenseManagement.controller;
 import com.prateek.ProjectExpenseManagement.dto.CreateExpenseRequest;
 import com.prateek.ProjectExpenseManagement.dto.CreateExpenseResponse;
 import com.prateek.ProjectExpenseManagement.dto.ExpenseDetailResponse;
+import com.prateek.ProjectExpenseManagement.dto.UpdateExpenseRequest;
+import com.prateek.ProjectExpenseManagement.dto.UpdateExpenseResponse;
 import com.prateek.ProjectExpenseManagement.service.ExpenseQueryService;
 import com.prateek.ProjectExpenseManagement.service.ExpenseService;
 import jakarta.validation.Valid;
@@ -34,5 +36,18 @@ public class ExpenseController {
     @GetMapping("/{expenseId}")
     public ExpenseDetailResponse getExpense(@PathVariable UUID expenseId) {
         return expenseQueryService.getExpense(expenseId);
+    }
+
+    @PutMapping("/{expenseId}")
+    public UpdateExpenseResponse updateExpense(
+            @PathVariable UUID expenseId,
+            @Valid @RequestBody UpdateExpenseRequest request) {
+        return expenseService.updateExpense(expenseId, request);
+    }
+
+    @DeleteMapping("/{expenseId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteExpense(@PathVariable UUID expenseId) {
+        expenseService.deleteExpense(expenseId);
     }
 }

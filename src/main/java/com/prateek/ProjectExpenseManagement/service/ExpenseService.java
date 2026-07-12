@@ -2,6 +2,11 @@ package com.prateek.ProjectExpenseManagement.service;
 
 import com.prateek.ProjectExpenseManagement.dto.CreateExpenseRequest;
 import com.prateek.ProjectExpenseManagement.dto.CreateExpenseResponse;
+import com.prateek.ProjectExpenseManagement.dto.ExpenseDetailResponse;
+import com.prateek.ProjectExpenseManagement.dto.ExpenseParticipantResponse;
+import com.prateek.ProjectExpenseManagement.dto.UpdateExpenseRequest;
+import com.prateek.ProjectExpenseManagement.dto.UpdateExpenseResponse;
+import com.prateek.ProjectExpenseManagement.dto.ParticipantShareRequest;
 import com.prateek.ProjectExpenseManagement.exception.BusinessValidationException;
 import com.prateek.ProjectExpenseManagement.repository.BalanceRepository;
 import com.prateek.ProjectExpenseManagement.repository.ExpenseRepository;
@@ -118,6 +123,106 @@ public class ExpenseService {
                 "SUCCESS",
                 "Expense created and balances updated successfully"
         );
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
+    public UpdateExpenseResponse updateExpense(UUID expenseId, @Valid UpdateExpenseRequest request) {
+        ExpenseDetailResponse existing = expenseRepository.findExpenseById(expenseId);
+
+        String newCurrencyCode = request.getCurrencyCode().toUpperCase();
+
+        List<UUID> allUserIds = Stream.concat(
+                Stream.of(request.getPaidByUserId()),
+                request.getParticipants().stream().map(ParticipantShareRequest::getUserId)
+        ).distinct().collect(Collectors.toList());
+
+        userRepository.assertUsersExist(allUserIds);
+        groupRepository.assertUsersBelongToGroup(existing.getGroupId(), allUserIds);
+
+        // Undo the balance impact of the expense as it stood before this edit,
+        // using its original payer/currency/participant shares.
+        for (ExpenseParticipantResponse oldParticipant : existing.getParticipants()) {
+            if (oldParticipant.getUserId().equals(existing.getPaidByUserId())) {
+                continue;
+            }
+            BigDecimal owed = oldParticipant.getOwedAmount();
+            if (owed.compareTo(BigDecimal.ZERO) > 0) {
+                balanceRepository.applyDebt(
+                        existing.getGroupId(),
+                        existing.getPaidByUserId(),
+                        oldParticipant.getUserId(),
+                        existing.getCurrencyCode(),
+                        owed,
+                        "EXPENSE",
+                        expenseId
+                );
+            }
+        }
+
+        ExpenseSplitStrategy strategy = splitStrategyFactory.getStrategy(request.getSplitType());
+        List<SplitAllocation> allocations = strategy.calculateSplit(
+                request.getTotalAmount(),
+                request.getPaidByUserId(),
+                request.getParticipants()
+        );
+
+        expenseRepository.updateExpense(expenseId, request);
+        expenseRepository.deleteParticipants(expenseId);
+        expenseRepository.batchInsertParticipants(expenseId, allocations);
+
+        // Re-apply the balance impact of the expense as it stands after this edit.
+        for (SplitAllocation allocation : allocations) {
+            UUID participantId = allocation.getUserId();
+            BigDecimal owed = allocation.getOwedAmount();
+
+            if (participantId.equals(request.getPaidByUserId())) {
+                continue;
+            }
+
+            if (owed.compareTo(BigDecimal.ZERO) > 0) {
+                balanceRepository.applyDebt(
+                        existing.getGroupId(),
+                        participantId,
+                        request.getPaidByUserId(),
+                        newCurrencyCode,
+                        owed,
+                        "EXPENSE",
+                        expenseId
+                );
+            }
+        }
+
+        return new UpdateExpenseResponse(
+                expenseId,
+                "SUCCESS",
+                "Expense updated and balances recalculated successfully"
+        );
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
+    public void deleteExpense(UUID expenseId) {
+        ExpenseDetailResponse existing = expenseRepository.findExpenseById(expenseId);
+
+        // Undo the balance impact this expense had, then remove it entirely.
+        for (ExpenseParticipantResponse participant : existing.getParticipants()) {
+            if (participant.getUserId().equals(existing.getPaidByUserId())) {
+                continue;
+            }
+            BigDecimal owed = participant.getOwedAmount();
+            if (owed.compareTo(BigDecimal.ZERO) > 0) {
+                balanceRepository.applyDebt(
+                        existing.getGroupId(),
+                        existing.getPaidByUserId(),
+                        participant.getUserId(),
+                        existing.getCurrencyCode(),
+                        owed,
+                        "EXPENSE",
+                        expenseId
+                );
+            }
+        }
+
+        expenseRepository.deleteExpense(expenseId);
     }
 
 }

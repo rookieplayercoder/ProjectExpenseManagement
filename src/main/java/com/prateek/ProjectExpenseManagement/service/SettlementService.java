@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class SettlementService {
@@ -54,11 +56,19 @@ public class SettlementService {
 
         String currencyCode = request.getCurrencyCode().toUpperCase();
 
-        List<UUID> userIds = List.of(
+        // .distinct() matters here: paidByUserId and createdByUserId are frequently
+        // the same person (the payer settling up records it themselves). Without
+        // deduplication, assertUsersExist's `existing.size() != userIds.size()` check
+        // compares a de-duplicated DB result against a list that can contain the same
+        // id twice, and always fails with "One or more users do not exist" even
+        // though every user is perfectly valid. ExpenseService already does this
+        // correctly (see its allUserIds construction) - this brings SettlementService
+        // in line with that same pattern.
+        List<UUID> userIds = Stream.of(
                 request.getPaidByUserId(),
                 request.getPaidToUserId(),
                 request.getCreatedByUserId()
-        );
+        ).distinct().collect(Collectors.toList());
 
         userRepository.assertUsersExist(userIds);
         groupRepository.assertGroupExists(request.getGroupId());

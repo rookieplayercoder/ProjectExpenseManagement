@@ -1,0 +1,26 @@
+# Build output - rebuilt fresh inside the image, not needed in the context
+target/
+*.class
+
+# Secrets - must never end up in an image layer
+.env
+*.env
+!.env.example
+
+# VCS / IDE
+.git/
+.gitignore
+.idea/
+*.iml
+.vscode/
+
+# OS cruft
+.DS_Store
+
+# Docker itself
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Misc
+*.log

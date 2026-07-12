@@ -83,11 +83,19 @@ class ExpenseCreationPercentageSplitIntegrationTest extends AbstractIntegrationT
                 }
                 """.formatted(groupId, payer, payer, payer, participant2);
 
+        // ParticipantShareRequest.percentage now carries @DecimalMin(0.00)/@DecimalMax(100.00),
+        // so a negative (or >100) percentage is now rejected by Bean Validation before the
+        // request ever reaches PercentageSplitStrategy - it fails fast at the DTO boundary
+        // instead of the old "Percentage cannot be negative" business-layer message. Confirming
+        // the outer contract (400, REQUEST_VALIDATION_ERROR) rather than the exact validation
+        // message text, since that wording is Hibernate Validator's default interpolation and
+        // not something this codebase owns.
         mockMvc.perform(post("/api/v1/expenses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(containsString("Percentage cannot be negative")));
+                .andExpect(jsonPath("$.error").value("REQUEST_VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value(containsString("percentage")));
     }
 
     @Test

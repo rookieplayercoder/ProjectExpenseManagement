@@ -1,8 +1,11 @@
 package com.prateek.ProjectExpenseManagement.dto;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,14 +23,17 @@ public class SettleBalanceRequest {
 
     @NotNull
     @DecimalMin(value = "0.0001", inclusive = true)
+    @Digits(integer = 15, fraction = 4, message = "amount may have at most 15 integer digits and 4 decimal places")
     private BigDecimal amount;
 
     @NotBlank
+    @Pattern(regexp = "^[A-Za-z]{3}$", message = "currencyCode must be a 3-letter ISO 4217 code, e.g. USD")
     private String currencyCode;
 
     @NotNull
     private LocalDate settlementDate;
 
+    @Size(max = 2000)
     private String note;
 
     @NotNull

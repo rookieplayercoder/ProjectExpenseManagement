@@ -1,6 +1,7 @@
 package com.prateek.ProjectExpenseManagement.repository;
 
 import com.prateek.ProjectExpenseManagement.dto.CreateGroupRequest;
+import com.prateek.ProjectExpenseManagement.dto.GroupSummaryResponse;
 import com.prateek.ProjectExpenseManagement.exception.BusinessValidationException;
 import com.prateek.ProjectExpenseManagement.exception.ResourceNotFoundException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -46,6 +47,39 @@ public class GroupRepository {
                 new MapSqlParameterSource()
                         .addValue("groupId", groupId)
                         .addValue("userId", userId)
+        );
+    }
+
+    /**
+     * All active groups the given user is an active member of, most recently
+     * created first, each annotated with its current active member count.
+     */
+    public List<GroupSummaryResponse> findGroupsForUser(UUID userId) {
+        String sql = """
+                SELECT g.id, g.group_name, g.description, g.created_by, g.created_at,
+                       (SELECT COUNT(1)
+                          FROM expense_group_member m2
+                         WHERE m2.group_id = g.id
+                           AND m2.is_active = TRUE) AS member_count
+                FROM expense_group g
+                JOIN expense_group_member m ON m.group_id = g.id
+                WHERE m.user_id = :userId
+                  AND m.is_active = TRUE
+                  AND g.is_active = TRUE
+                ORDER BY g.created_at DESC
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                new MapSqlParameterSource("userId", userId),
+                (rs, rowNum) -> new GroupSummaryResponse(
+                        UUID.fromString(rs.getString("id")),
+                        rs.getString("group_name"),
+                        rs.getString("description"),
+                        UUID.fromString(rs.getString("created_by")),
+                        rs.getInt("member_count"),
+                        rs.getTimestamp("created_at").toInstant()
+                )
         );
     }
 

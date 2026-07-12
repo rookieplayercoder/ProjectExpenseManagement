@@ -2,6 +2,7 @@ package com.prateek.ProjectExpenseManagement.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class CreateUserRequest {
@@ -15,7 +16,7 @@ public class CreateUserRequest {
     @Size(max = 150)
     private String fullName;
 
-    @Size(max = 20)
+    @Pattern(regexp = "^$|^[0-9+()\\-\\s]{7,20}$", message = "mobileNumber may only contain digits, spaces, and + ( ) -")
     private String mobileNumber;
 
     @NotBlank

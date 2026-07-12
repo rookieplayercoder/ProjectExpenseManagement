@@ -6,6 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -26,6 +27,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 // These tests exercise business logic (expense splitting, settlements, etc.),
 // not authentication - JWT/security behavior gets its own test class instead.
 @AutoConfigureMockMvc(addFilters = false)
+// MockMvc requests all share the same fake remote address, so without this
+// override the whole test suite would count against a single rate-limit
+// bucket and start failing with 429s once enough tests had run.
+@TestPropertySource(properties = {
+        "rate-limit.login.max-requests=100000",
+        "rate-limit.register.max-requests=100000"
+})
 public abstract class AbstractIntegrationTestBase {
 
     @ServiceConnection

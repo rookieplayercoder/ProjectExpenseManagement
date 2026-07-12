@@ -2,6 +2,7 @@ package com.prateek.ProjectExpenseManagement.service;
 
 import com.prateek.ProjectExpenseManagement.dto.CreateGroupRequest;
 import com.prateek.ProjectExpenseManagement.dto.CreateGroupResponse;
+import com.prateek.ProjectExpenseManagement.dto.GroupSummaryResponse;
 import com.prateek.ProjectExpenseManagement.repository.GroupRepository;
 import com.prateek.ProjectExpenseManagement.repository.UserRepository;
 import jakarta.validation.Valid;
@@ -40,5 +41,10 @@ public class GroupService {
         groupRepository.addMembers(groupId, List.copyOf(memberIds));
 
         return new CreateGroupResponse(groupId, "SUCCESS", "Group created successfully");
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
+    public List<GroupSummaryResponse> getGroupsForUser(UUID userId) {
+        return groupRepository.findGroupsForUser(userId);
     }
 }

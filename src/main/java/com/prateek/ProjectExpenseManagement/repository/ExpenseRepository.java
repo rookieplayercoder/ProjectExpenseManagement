@@ -6,6 +6,7 @@ import com.prateek.ProjectExpenseManagement.dto.CreateExpenseRequest;
 import com.prateek.ProjectExpenseManagement.dto.ExpenseDetailResponse;
 import com.prateek.ProjectExpenseManagement.dto.ExpenseParticipantResponse;
 import com.prateek.ProjectExpenseManagement.dto.ExpenseSummaryResponse;
+import com.prateek.ProjectExpenseManagement.dto.UpdateExpenseRequest;
 import com.prateek.ProjectExpenseManagement.exception.ResourceNotFoundException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -131,6 +132,43 @@ public class ExpenseRepository {
 
         jdbcTemplate.update(sql, params);
         return expenseId;
+    }
+
+    public void updateExpense(UUID expenseId, UpdateExpenseRequest request) {
+        String sql = """
+                UPDATE expense
+                SET paid_by_user_id = :paidByUserId,
+                    title = :title,
+                    description = :description,
+                    total_amount = :totalAmount,
+                    currency_code = :currencyCode,
+                    split_type = :splitType,
+                    expense_date = :expenseDate
+                WHERE id = :id
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", expenseId)
+                .addValue("paidByUserId", request.getPaidByUserId())
+                .addValue("title", request.getTitle())
+                .addValue("description", request.getDescription())
+                .addValue("totalAmount", request.getTotalAmount())
+                .addValue("currencyCode", request.getCurrencyCode().toUpperCase())
+                .addValue("splitType", request.getSplitType().name())
+                .addValue("expenseDate", request.getExpenseDate());
+
+        jdbcTemplate.update(sql, params);
+    }
+
+    public void deleteParticipants(UUID expenseId) {
+        String sql = "DELETE FROM expense_participant WHERE expense_id = :expenseId";
+        jdbcTemplate.update(sql, new MapSqlParameterSource("expenseId", expenseId));
+    }
+
+    public void deleteExpense(UUID expenseId) {
+        // expense_participant rows cascade on delete (fk_expense_participant_expense).
+        String sql = "DELETE FROM expense WHERE id = :id";
+        jdbcTemplate.update(sql, new MapSqlParameterSource("id", expenseId));
     }
 
     public void batchInsertParticipants(UUID expenseId, List<SplitAllocation> allocations) {

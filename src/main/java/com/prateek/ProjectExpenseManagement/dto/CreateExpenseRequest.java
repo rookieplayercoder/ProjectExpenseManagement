@@ -3,9 +3,11 @@ package com.prateek.ProjectExpenseManagement.dto;
 import com.prateek.ProjectExpenseManagement.domain.SplitType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -29,9 +31,13 @@ public class CreateExpenseRequest {
 
     @NotNull
     @DecimalMin(value = "0.0001", inclusive = true)
+    // Matches the NUMERIC(19,4) column - without this, an over-precision or
+    // too-large amount fails as a raw DB error (500) instead of a clean 400.
+    @Digits(integer = 15, fraction = 4, message = "totalAmount may have at most 15 integer digits and 4 decimal places")
     private BigDecimal totalAmount;
 
     @NotBlank
+    @Pattern(regexp = "^[A-Za-z]{3}$", message = "currencyCode must be a 3-letter ISO 4217 code, e.g. USD")
     private String currencyCode;
 
     @NotNull
@@ -45,6 +51,7 @@ public class CreateExpenseRequest {
 
     @Valid
     @NotEmpty
+    @Size(max = 100, message = "A single expense cannot have more than 100 participants")
     private List<ParticipantShareRequest> participants;
 
     public UUID getGroupId() {

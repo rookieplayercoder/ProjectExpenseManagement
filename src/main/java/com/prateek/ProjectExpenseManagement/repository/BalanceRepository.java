@@ -87,16 +87,23 @@ public class BalanceRepository {
                         reverseDirection.creditorUserId(), currencyCode,
                         eventType, eventId, previous, deltaAmount.negate(), updated);
             } else if (compare == 0) {
-                deleteBalance(reverseDirection.id());
+                // insertHistory MUST run before deleteBalance: history.balance_id is a
+                // foreign key to user_balance.id, so inserting the history row after the
+                // balance is already deleted fails with "Key (balance_id)=... is not
+                // present in table user_balance" - the FK has to point at a row that
+                // still exists at insert time. ON DELETE SET NULL (see V4 migration)
+                // then correctly nulls that reference out once deleteBalance runs.
                 insertHistory(reverseDirection.id(), groupId, reverseDirection.debtorUserId(),
                         reverseDirection.creditorUserId(), currencyCode,
                         eventType, eventId, previous, deltaAmount.negate(), BigDecimal.ZERO);
+                deleteBalance(reverseDirection.id());
             } else {
                 BigDecimal residual = deltaAmount.subtract(previous);
-                deleteBalance(reverseDirection.id());
+                // Same ordering fix as above: history before delete.
                 insertHistory(reverseDirection.id(), groupId, reverseDirection.debtorUserId(),
                         reverseDirection.creditorUserId(), currencyCode,
                         eventType, eventId, previous, deltaAmount.negate(), BigDecimal.ZERO);
+                deleteBalance(reverseDirection.id());
 
                 UUID newBalanceId = insertBalance(groupId, debtorUserId, creditorUserId, currencyCode, residual, eventType, eventId);
                 insertHistory(newBalanceId, groupId, debtorUserId, creditorUserId, currencyCode,
