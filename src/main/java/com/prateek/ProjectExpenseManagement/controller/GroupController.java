@@ -1,9 +1,11 @@
 package com.prateek.ProjectExpenseManagement.controller;
 
+import com.prateek.ProjectExpenseManagement.dto.AddGroupMembersRequest;
 import com.prateek.ProjectExpenseManagement.dto.CreateGroupRequest;
 import com.prateek.ProjectExpenseManagement.dto.CreateGroupResponse;
 import com.prateek.ProjectExpenseManagement.dto.ExpenseSummaryResponse;
 import com.prateek.ProjectExpenseManagement.dto.GroupBalanceResponse;
+import com.prateek.ProjectExpenseManagement.dto.GroupDetailResponse;
 import com.prateek.ProjectExpenseManagement.dto.GroupSummaryResponse;
 import com.prateek.ProjectExpenseManagement.dto.SettlementSummaryResponse;
 import com.prateek.ProjectExpenseManagement.security.AuthenticatedUser;
@@ -53,6 +55,17 @@ public class GroupController {
         return groupService.getGroupsForUser(principal.userId());
     }
 
+    /**
+     * Single group with its full member list. Requires the caller to be an
+     * active member - see GroupService.getGroupDetail for the exact ordering
+     * of the not-found vs not-a-member checks.
+     */
+    @GetMapping("/{groupId}")
+    public GroupDetailResponse getGroupDetail(@PathVariable UUID groupId,
+                                              @AuthenticationPrincipal AuthenticatedUser principal) {
+        return groupService.getGroupDetail(groupId, principal.userId());
+    }
+
     @GetMapping("/{groupId}/balances")
     public GroupBalanceResponse getGroupBalances(@PathVariable UUID groupId) {
         return balanceService.getGroupBalances(groupId);
@@ -66,5 +79,19 @@ public class GroupController {
     @GetMapping("/{groupId}/settlements")
     public List<SettlementSummaryResponse> getGroupSettlements(@PathVariable UUID groupId) {
         return settlementQueryService.getSettlementsForGroup(groupId);
+    }
+
+    @PostMapping("/{groupId}/members")
+    public GroupDetailResponse addMembers(@PathVariable UUID groupId,
+                                          @Valid @RequestBody AddGroupMembersRequest request,
+                                          @AuthenticationPrincipal AuthenticatedUser principal) {
+        return groupService.addMembersToGroup(groupId, principal.userId(), request);
+    }
+
+    @DeleteMapping("/{groupId}/members/{userId}")
+    public GroupDetailResponse removeMember(@PathVariable UUID groupId,
+                                            @PathVariable UUID userId,
+                                            @AuthenticationPrincipal AuthenticatedUser principal) {
+        return groupService.removeMemberFromGroup(groupId, principal.userId(), userId);
     }
 }

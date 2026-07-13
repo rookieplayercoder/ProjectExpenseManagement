@@ -2,12 +2,15 @@ package com.prateek.ProjectExpenseManagement.repository;
 
 import com.prateek.ProjectExpenseManagement.domain.AuthUserView;
 import com.prateek.ProjectExpenseManagement.dto.CreateUserRequest;
+import com.prateek.ProjectExpenseManagement.dto.UserLookupResponse;
+import com.prateek.ProjectExpenseManagement.dto.UserProfileResponse;
 import com.prateek.ProjectExpenseManagement.exception.BusinessValidationException;
 import com.prateek.ProjectExpenseManagement.exception.ResourceNotFoundException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +22,51 @@ public class UserRepository {
 
     public UserRepository(NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public UserProfileResponse findProfileById(UUID userId) {
+        String sql = """
+                SELECT id, email, full_name, mobile_number, role, created_at
+                FROM app_user
+                WHERE id = :userId AND is_active = TRUE
+                """;
+
+        List<UserProfileResponse> results = jdbcTemplate.query(sql,
+                new MapSqlParameterSource("userId", userId),
+                (rs, rowNum) -> new UserProfileResponse(
+                        UUID.fromString(rs.getString("id")),
+                        rs.getString("email"),
+                        rs.getString("full_name"),
+                        rs.getString("mobile_number"),
+                        rs.getString("role"),
+                        rs.getObject("created_at", OffsetDateTime.class).toInstant()
+                ));
+
+        if (results.isEmpty()) {
+            throw new ResourceNotFoundException("User not found: " + userId);
+        }
+        return results.get(0);
+    }
+
+    public UserLookupResponse findLookupByEmail(String email) {
+        String sql = """
+                SELECT id, full_name, email
+                FROM app_user
+                WHERE email = :email AND is_active = TRUE
+                """;
+
+        List<UserLookupResponse> results = jdbcTemplate.query(sql,
+                new MapSqlParameterSource("email", email.trim().toLowerCase()),
+                (rs, rowNum) -> new UserLookupResponse(
+                        UUID.fromString(rs.getString("id")),
+                        rs.getString("full_name"),
+                        rs.getString("email")
+                ));
+
+        if (results.isEmpty()) {
+            throw new ResourceNotFoundException("No user found with email: " + email);
+        }
+        return results.get(0);
     }
 
     public void assertUsersExist(List<UUID> userIds) {

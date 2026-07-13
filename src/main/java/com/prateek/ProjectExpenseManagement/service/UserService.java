@@ -2,6 +2,8 @@ package com.prateek.ProjectExpenseManagement.service;
 
 import com.prateek.ProjectExpenseManagement.dto.CreateUserRequest;
 import com.prateek.ProjectExpenseManagement.dto.CreateUserResponse;
+import com.prateek.ProjectExpenseManagement.dto.UserLookupResponse;
+import com.prateek.ProjectExpenseManagement.dto.UserProfileResponse;
 import com.prateek.ProjectExpenseManagement.exception.BusinessValidationException;
 import com.prateek.ProjectExpenseManagement.repository.UserRepository;
 import jakarta.validation.Valid;
@@ -22,6 +24,14 @@ public class UserService {
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    public UserProfileResponse getMyProfile(UUID userId) {
+        return userRepository.findProfileById(userId);
+    }
+
+    public UserLookupResponse lookupByEmail(String email) {
+        return userRepository.findLookupByEmail(email);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
