@@ -36,16 +36,7 @@ app.
 
 ## 🎥 Project Demo
 
-> _Record a short screen capture (GIF or video) walking through:
-> registration → login → create group → add members → create an equal-split
-> expense → create an exact-split expense → create a percentage-split
-> expense → view balances → partial settlement → full settlement →
-> dashboard update. Embed it here once recorded._
-
-```
-[Demo GIF/video placeholder]
-```
-
+![Project Demo](docs/demo/demo.gif)
 ---
 
 ## Features
