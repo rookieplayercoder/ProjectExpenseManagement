@@ -1,10 +1,9 @@
 package com.prateek.ProjectExpenseManagement;
 
+import com.prateek.ProjectExpenseManagement.support.AbstractIntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class ProjectExpenseManagementApplicationTests {
+class ProjectExpenseManagementApplicationTests extends AbstractIntegrationTestBase {
 
     @Test
     void contextLoads() {
