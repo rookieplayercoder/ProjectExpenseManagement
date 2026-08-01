@@ -7,8 +7,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set - see .env.example}
     ports:
-      # Exposed on the host too, so you can connect a DB client directly
-      # while developing. Remove this mapping if you don't need host access.
+      
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -26,16 +25,8 @@ services:
     restart: unless-stopped
     depends_on:
       postgres:
-        # Waits for Postgres to actually accept connections (via its
-        # healthcheck above), not just for the container process to start -
-        # Flyway migrations would otherwise race a still-initializing DB.
         condition: service_healthy
     environment:
-      # Inside the Compose network, the DB is reachable at the service name
-      # "postgres", not "localhost" - this intentionally overrides whatever
-      # DB_URL is set to on the host/.env, since that value is meant for
-      # running the app directly on the host instead of in Docker.
-      DB_URL: jdbc:postgresql://postgres:5432/expense_management
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set - see .env.example}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set - see .env.example}
